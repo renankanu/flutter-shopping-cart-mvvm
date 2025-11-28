@@ -54,7 +54,13 @@ class CardProduct extends StatelessWidget {
                         return AppQuantityCounter(product: product);
                       }
                       return ElevatedButton(
-                        onPressed: () => model.addItem(product),
+                        onPressed: () {
+                          try {
+                            model.addItem(product);
+                          } on CartException catch (exception) {
+                            context.showErrorSnackBar(exception.message);
+                          }
+                        },
                         child: Text('Adicionar ao carrinho'),
                       );
                     },

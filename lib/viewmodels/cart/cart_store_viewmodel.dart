@@ -12,9 +12,11 @@ class CartStoreViewmodel extends ChangeNotifier {
 
   void addItem(Product product) {
     if (_cart.totalDifferentItems >= AppConstants.maxItems) {
-      throw Exception(
-        'Limite de ${AppConstants.maxItems} produtos diferentes atingido.'
-        ' Remova alguns produtos para adicionar mais.',
+      throw CartException(
+        message:
+            'Limite de ${AppConstants.maxItems} produtos '
+            'diferentes atingido. Remova alguns produtos '
+            'para adicionar mais.',
       );
     }
     final existingIndex = _cart.items.indexWhere(
