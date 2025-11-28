@@ -8,20 +8,29 @@ class AppQuantityCounter extends StatelessWidget {
   const AppQuantityCounter({
     super.key,
     required this.product,
+    this.onRemove,
   });
 
   final Product product;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
     final model = context.watch<CartStoreViewmodel>();
+    final quantity = model.getItemQuantity(product);
     return Row(
       children: [
         IconButton(
-          onPressed: () => model.decrementItem(product),
+          onPressed: () {
+            if (quantity == 1 && onRemove != null) {
+              onRemove!();
+              return;
+            }
+            model.decrementItem(product);
+          },
           icon: Icon(Icons.remove),
         ),
-        Text(model.getItemQuantity(product).toString()),
+        Text(quantity.toString()),
         IconButton(
           onPressed: () => model.incrementItem(product),
           icon: Icon(Icons.add),

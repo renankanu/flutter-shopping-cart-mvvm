@@ -10,9 +10,13 @@ class CardProduct extends StatelessWidget {
   const CardProduct({
     super.key,
     required this.product,
+    this.onRemove,
+    this.showAddButton = true,
   });
 
   final Product product;
+  final VoidCallback? onRemove;
+  final bool showAddButton;
 
   @override
   Widget build(BuildContext context) {
@@ -37,32 +41,50 @@ class CardProduct extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
                 children: [
-                  Text(
-                    product.title,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          product.title,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (onRemove != null)
+                        IconButton(
+                          onPressed: onRemove,
+                          icon: Icon(Icons.delete_outline),
+                          color: Colors.red,
+                        ),
+                    ],
                   ),
                   Text(product.price.toCurrencyBr),
                   Consumer<CartStoreViewmodel>(
                     builder: (context, model, child) {
                       final quantity = model.getItemQuantity(product);
                       if (quantity > 0) {
-                        return AppQuantityCounter(product: product);
+                        return AppQuantityCounter(
+                          product: product,
+                          onRemove: onRemove,
+                        );
                       }
-                      return ElevatedButton(
-                        onPressed: () {
-                          try {
-                            model.addItem(product);
-                          } on CartException catch (exception) {
-                            context.showErrorSnackBar(exception.message);
-                          }
-                        },
-                        child: Text('Adicionar ao carrinho'),
-                      );
+                      if (showAddButton) {
+                        return AppButton(
+                          onPressed: () {
+                            try {
+                              model.addItem(product);
+                            } on CartException catch (exception) {
+                              context.showErrorSnackBar(exception.message);
+                            }
+                          },
+                          title: 'Adicionar ao carrinho',
+                        );
+                      }
+                      return SizedBox.shrink();
                     },
                   ),
                 ],

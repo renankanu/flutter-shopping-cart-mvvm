@@ -20,4 +20,13 @@ extension ContextExtension on BuildContext {
       ),
     );
   }
+
+  void showInfoSnackBar(String message) {
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
 }
