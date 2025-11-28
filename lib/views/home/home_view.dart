@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/core.dart';
-import '../../shared/shared.dart';
+import '../../core/app_constants.dart';
+import '../../viewmodels/cart/cart_store_viewmodel.dart';
 import '../../viewmodels/home/home_viewmodel.dart';
+import 'widgets/badge_counter.dart';
+import 'widgets/card_product.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -22,71 +24,42 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: .center,
-          crossAxisAlignment: .center,
-          children: [
-            Expanded(
-              child: Consumer<HomeViewmodel>(
-                builder: (context, model, child) {
-                  return ListView.builder(
-                    itemCount: model.products.length,
-                    itemBuilder: (context, index) {
-                      final product = model.products[index];
-                      return SizedBox(
-                        height: 178,
-                        child: Card(
-                          margin: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                AppImage(
-                                  url: product.image,
-                                  fit: BoxFit.contain,
-                                  height: 120,
-                                  width: 120,
-                                ),
-                                SizedBox(width: 12),
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    spacing: 8,
-                                    children: [
-                                      Text(
-                                        product.title,
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(product.price.toCurrencyBr),
-                                      ElevatedButton(
-                                        onPressed: () {},
-                                        child: Text('Adicionar ao carrinho'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+      appBar: AppBar(
+        actions: [
+          Consumer<CartStoreViewmodel>(
+            builder: (context, model, child) {
+              return IconButton(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppConstants.cartRoute,
+                ),
+                icon: BadgeCounter(model: model),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: .center,
+        crossAxisAlignment: .center,
+        children: [
+          Expanded(
+            child: Consumer<HomeViewmodel>(
+              builder: (context, model, child) {
+                return ListView.builder(
+                  itemCount: model.products.length,
+                  itemBuilder: (context, index) {
+                    final product = model.products[index];
+                    return SizedBox(
+                      height: 178,
+                      child: CardProduct(product: product),
+                    );
+                  },
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

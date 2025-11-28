@@ -5,6 +5,7 @@ import 'package:shopping_cart/views/home/home_view.dart';
 
 import 'core/core.dart';
 import 'data/repositories/home/home_repository_impl.dart';
+import 'viewmodels/cart/cart_store_viewmodel.dart';
 import 'viewmodels/home/home_viewmodel.dart';
 import 'views/cart/cart_view.dart';
 import 'views/order_completed/order_completed_view.dart';
@@ -29,6 +30,9 @@ class MyApp extends StatelessWidget {
               dio: context.read<Dio>(),
             ),
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CartStoreViewmodel(),
         ),
       ],
       child: MaterialApp(
