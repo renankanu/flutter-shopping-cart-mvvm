@@ -6,8 +6,8 @@ Aplicação de carrinho de compras desenvolvida em Flutter seguindo a arquitetur
 
 ## 📋 Requisitos
 
-- Flutter 3.x
-- Dart 3.x
+- Flutter 3.38.3
+- Dart 3.10.1
 
 ## 🚀 Como executar
 
@@ -17,6 +17,9 @@ flutter pub get
 
 # Executar o app
 flutter run
+
+# Rodar testes
+flutter test
 ```
 
 ## 🏗️ Arquitetura
@@ -24,15 +27,18 @@ flutter run
 O projeto segue a arquitetura **MVVM (Model-View-ViewModel)** com separação clara de responsabilidades:
 
 - **Model**: Entidades de domínio (`Product`, `Cart`, `CartItem`)
-- **View**: Widgets de UI que renderizam estados
-- **ViewModel**: Lógica de apresentação e gerenciamento de estado
-- **Data**: Repositories e DTOs para comunicação com API
+- **View**: Widgets de UI que apenas renderizam (recebem dados via props e emitem callbacks)
+- **ViewModel**: Orquestra fluxo de dados e gerencia estado da UI
+- **Use Cases**: Contém toda a lógica de negócio isolada e testável
+- **Repository**: Abstração para acesso a dados (API, cache, etc)
+- **Data**: Implementações dos repositories e DTOs
 
 ## 🛠️ Tecnologias
 
 - **Flutter** - Framework UI
 - **Provider** - Gerenciamento de estado com ChangeNotifier
 - **Dio** - Cliente HTTP
+- **Mockito** - Testes unitários
 - **FakeStore API** - API de produtos
 
 ## ✨ Funcionalidades
@@ -64,18 +70,46 @@ O projeto segue a arquitetura **MVVM (Model-View-ViewModel)** com separação cl
 
 ```
 lib/
-├── core/              # Configurações e constantes
+├── core/              # Configurações, constantes e utils
 ├── data/              # Repositories e DTOs
-├── domain/            # Models (entidades)
-├── viewmodels/        # Lógica de apresentação
+├── domain/
+│   ├── models/        # Entidades de domínio
+│   └── usecases/      # Casos de uso (lógica de negócio)
+├── viewmodels/        # Gerenciamento de estado
 ├── views/             # Telas e widgets
 └── shared/            # Widgets reutilizáveis
 ```
 
 ## 📝 Padrões Aplicados
 
-- **MVVM** - Separação de responsabilidades
+### Result Pattern
+
+Tratamento de erros type-safe usando sealed classes. Em vez de try/catch, as operações retornam `Result<T>` que pode ser `Ok` ou `Error`. Isso torna o fluxo de erro explícito e obriga a tratar todos os casos.
+
+### Use Cases
+
+A lógica de negócio fica isolada em casos de uso específicos, deixando os ViewModels apenas orquestrando o fluxo. Cada use case faz uma coisa só e é facilmente testável.
+
+- `AddItemToCartUseCase` - Valida limite e adiciona produtos
+- `UpdateItemQuantityUseCase` - Incrementa/decrementa quantidades
+
+### Outros
+
 - **Repository Pattern** - Abstração da camada de dados
 - **Dependency Injection** - Provider para injeção de dependências
-- **Immutability** - Modelos imutáveis
-- **SOLID** - Princípios de design
+- **Immutability** - Modelos imutáveis com copyWith
+- **SOLID** - Separação clara de responsabilidades
+
+## 🧪 Testes
+
+Os teste implementados foram:
+
+- Testes unitários para ViewModels **HomeViewmodel**
+
+## 📝 Observações
+
+Foi implementado apenas o teste unitário do **HomeViewModel**, faltando:
+
+- Testes unitários dos outros ViewModels (CartStoreViewmodel)
+- Testes unitários dos Use Cases (AddItemToCartUseCase, UpdateItemQuantityUseCase)
+- Testes de widget com pump verificando renderização por estado (loading, erro, sucesso)
