@@ -1,5 +1,6 @@
+import '../../../core/core.dart';
 import '../../../domain/models/product.dart';
 
 abstract class HomeRepository {
-  Future<List<Product>> getProducts();
+  Future<Result<List<Product>>> getProducts();
 }

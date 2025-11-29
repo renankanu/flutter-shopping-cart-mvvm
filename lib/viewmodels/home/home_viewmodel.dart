@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/core.dart';
 import '../../data/repositories/home/home_repository.dart';
 import '../../domain/models/product.dart';
 
@@ -23,14 +24,15 @@ class HomeViewmodel extends ChangeNotifier {
 
   Future<void> getProducts() async {
     setIsLoading(true);
-    try {
-      final products = await homeRepository.getProducts();
-      _products.addAll(products);
-    } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      setIsLoading(false);
+    final result = await homeRepository.getProducts();
+    switch (result) {
+      case Ok():
+        _products.addAll(result.value);
+        break;
+      case Error():
+        errorMessage = result.error.toString();
     }
+    setIsLoading(false);
   }
 
   void setIsLoading(bool value) {

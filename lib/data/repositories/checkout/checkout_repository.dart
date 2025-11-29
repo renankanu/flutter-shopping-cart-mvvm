@@ -1,3 +1,5 @@
+import '../../../core/core.dart';
+
 abstract class CheckoutRepository {
-  Future<bool> finalizePurchase();
+  Future<Result<bool>> finalizePurchase();
 }

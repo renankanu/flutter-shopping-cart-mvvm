@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../../../core/app_constants.dart';
+import '../../../core/core.dart';
 import '../../../domain/models/product.dart';
 import '../../dtos/product_dto.dart';
 import 'home_repository.dart';
@@ -11,10 +11,20 @@ final class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl({required this.dio});
 
   @override
-  Future<List<Product>> getProducts() async {
+  Future<Result<List<Product>>> getProducts() async {
     final response = await dio.get(AppConstants.products);
-    return (response.data as List)
-        .map((e) => ProductDto.fromJson(e as Map<String, dynamic>).toDomain())
-        .toList();
+    try {
+      return Result.ok(
+        (response.data as List)
+            .map(
+              (e) => ProductDto.fromJson(e as Map<String, dynamic>).toDomain(),
+            )
+            .toList(),
+      );
+    } on DioException catch (error) {
+      return Result.error(NetworkException.fromDioError(error));
+    } catch (_) {
+      return Result.error(Exception('Erro ao buscar produtos'));
+    }
   }
 }

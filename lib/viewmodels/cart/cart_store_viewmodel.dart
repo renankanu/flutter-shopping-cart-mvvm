@@ -90,18 +90,24 @@ class CartStoreViewmodel extends ChangeNotifier {
 
   Future<void> removeItem(Product product) async {
     setIsRemoving(true);
-    try {
-      await _cartRepository.removeItem(product);
-      final newItems = _cart.items
-          .where((item) => item.product.id != product.id)
-          .toList();
-      _cart = _cart.copyWith(items: newItems);
-      notifyListeners();
-    } on CartException catch (e) {
-      errorMessage = e.message;
-    } finally {
-      setIsRemoving(false);
+    final result = await _cartRepository.removeItem(product);
+    switch (result) {
+      case Ok():
+        final newItems = _cart.items
+            .where((item) => item.product.id != product.id)
+            .toList();
+        _cart = _cart.copyWith(items: newItems);
+        notifyListeners();
+        break;
+      case Error():
+        if (result.error is CartException) {
+          errorMessage = (result.error as CartException).message;
+        } else {
+          errorMessage = result.error.toString();
+        }
+        break;
     }
+    setIsRemoving(false);
   }
 
   void clear() {
@@ -134,16 +140,15 @@ class CartStoreViewmodel extends ChangeNotifier {
 
   Future<bool> finalizePurchase() async {
     setIsLoading(true);
-    bool isSuccess = false;
-    try {
-      await _checkoutRepository.finalizePurchase();
-      isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString();
-      isSuccess = false;
-    } finally {
-      setIsLoading(false);
+    final result = await _checkoutRepository.finalizePurchase();
+    switch (result) {
+      case Ok():
+        setIsLoading(false);
+        return result.value;
+      case Error():
+        errorMessage = result.error.toString();
+        setIsLoading(false);
+        return false;
     }
-    return isSuccess;
   }
 }
