@@ -74,13 +74,7 @@ class CardProduct extends StatelessWidget {
                       }
                       if (showAddButton) {
                         return AppButton(
-                          onPressed: () {
-                            try {
-                              model.addItem(product);
-                            } on CartException catch (exception) {
-                              context.showErrorSnackBar(exception.message);
-                            }
-                          },
+                          onPressed: () => model.addItem(product),
                           title: 'Adicionar ao carrinho',
                         );
                       }

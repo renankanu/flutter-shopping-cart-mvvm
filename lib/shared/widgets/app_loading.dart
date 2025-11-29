@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AppLoading extends StatelessWidget {
-  const AppLoading({super.key, this.message});
+  const AppLoading({super.key, this.message, this.color});
 
   final String? message;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: color ?? Colors.black.withValues(alpha: 0.5),
       child: Center(
         child: Card(
           child: Padding(

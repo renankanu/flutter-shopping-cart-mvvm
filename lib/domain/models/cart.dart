@@ -16,4 +16,8 @@ class Cart {
   double get total => subtotal + shipping;
 
   factory Cart.empty() => Cart(items: []);
+
+  Cart copyWith({List<CartItem>? items}) {
+    return Cart(items: items ?? this.items);
+  }
 }

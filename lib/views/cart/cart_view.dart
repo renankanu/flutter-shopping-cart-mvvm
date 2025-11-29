@@ -16,17 +16,29 @@ class CartView extends StatefulWidget {
 
 class _CartViewState extends State<CartView> {
   late CartStoreViewmodel _cartStoreViewmodel;
+
   @override
   void initState() {
     super.initState();
     _cartStoreViewmodel = context.read<CartStoreViewmodel>();
 
-    _cartStoreViewmodel.addListener(() {
-      if (_cartStoreViewmodel.errorMessage != null) {
-        context.showErrorSnackBar(_cartStoreViewmodel.errorMessage!);
-        _cartStoreViewmodel.errorMessage = null;
-      }
-    });
+    _cartStoreViewmodel.addListener(_handleCartStoreChange);
+  }
+
+  void _handleCartStoreChange() {
+    if (!mounted) {
+      return;
+    }
+    if (_cartStoreViewmodel.errorMessage != null) {
+      context.showErrorSnackBar(_cartStoreViewmodel.errorMessage!);
+      _cartStoreViewmodel.clearError();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cartStoreViewmodel.removeListener(_handleCartStoreChange);
+    super.dispose();
   }
 
   @override

@@ -17,7 +17,7 @@ class CartStoreViewmodel extends ChangeNotifier {
   }) : _cartRepository = cartRepository,
        _checkoutRepository = checkoutRepository;
 
-  final _cart = Cart.empty();
+  Cart _cart = Cart.empty();
   bool _isLoading = false;
   bool _isRemoving = false;
   String? _errorMessage;
@@ -46,13 +46,17 @@ class CartStoreViewmodel extends ChangeNotifier {
       (item) => item.product.id == product.id,
     );
 
+    final List<CartItem> newItems;
     if (existingIndex >= 0) {
-      _cart.items[existingIndex] = _cart.items[existingIndex].copyWith(
-        quantity: _cart.items[existingIndex].quantity + 1,
+      newItems = List.from(_cart.items);
+      newItems[existingIndex] = newItems[existingIndex].copyWith(
+        quantity: newItems[existingIndex].quantity + 1,
       );
     } else {
-      _cart.items.add(CartItem(product: product, quantity: 1));
+      newItems = [..._cart.items, CartItem(product: product, quantity: 1)];
     }
+
+    _cart = _cart.copyWith(items: newItems);
     notifyListeners();
   }
 
@@ -61,9 +65,11 @@ class CartStoreViewmodel extends ChangeNotifier {
       (item) => item.product.id == product.id,
     );
     if (existingIndex >= 0) {
-      _cart.items[existingIndex] = _cart.items[existingIndex].copyWith(
-        quantity: _cart.items[existingIndex].quantity + 1,
+      final newItems = List<CartItem>.from(_cart.items);
+      newItems[existingIndex] = newItems[existingIndex].copyWith(
+        quantity: newItems[existingIndex].quantity + 1,
       );
+      _cart = _cart.copyWith(items: newItems);
     }
     notifyListeners();
   }
@@ -73,9 +79,11 @@ class CartStoreViewmodel extends ChangeNotifier {
       (item) => item.product.id == product.id,
     );
     if (existingIndex >= 0) {
-      _cart.items[existingIndex] = _cart.items[existingIndex].copyWith(
-        quantity: _cart.items[existingIndex].quantity - 1,
+      final newItems = List<CartItem>.from(_cart.items);
+      newItems[existingIndex] = newItems[existingIndex].copyWith(
+        quantity: newItems[existingIndex].quantity - 1,
       );
+      _cart = _cart.copyWith(items: newItems);
     }
     notifyListeners();
   }
@@ -84,7 +92,10 @@ class CartStoreViewmodel extends ChangeNotifier {
     setIsRemoving(true);
     try {
       await _cartRepository.removeItem(product);
-      _cart.items.removeWhere((item) => item.product.id == product.id);
+      final newItems = _cart.items
+          .where((item) => item.product.id != product.id)
+          .toList();
+      _cart = _cart.copyWith(items: newItems);
       notifyListeners();
     } on CartException catch (e) {
       errorMessage = e.message;
@@ -94,7 +105,7 @@ class CartStoreViewmodel extends ChangeNotifier {
   }
 
   void clear() {
-    _cart.items.clear();
+    _cart = Cart.empty();
     notifyListeners();
   }
 
@@ -113,6 +124,11 @@ class CartStoreViewmodel extends ChangeNotifier {
 
   void setIsRemoving(bool value) {
     _isRemoving = value;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 
