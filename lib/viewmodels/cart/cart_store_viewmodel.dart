@@ -6,16 +6,23 @@ import '../../data/repositories/checkout/checkout_repository.dart';
 import '../../domain/models/cart.dart';
 import '../../domain/models/cart_item.dart';
 import '../../domain/models/product.dart';
+import '../../domain/usecases/usecases.dart';
 
 class CartStoreViewmodel extends ChangeNotifier {
   final CartRepository _cartRepository;
   final CheckoutRepository _checkoutRepository;
+  final AddItemToCartUseCase _addItemUseCase;
+  final UpdateItemQuantityUseCase _updateQuantityUseCase;
 
   CartStoreViewmodel({
     required CartRepository cartRepository,
     required CheckoutRepository checkoutRepository,
-  }) : _cartRepository = cartRepository,
-       _checkoutRepository = checkoutRepository;
+    required AddItemToCartUseCase addItemUseCase,
+    required UpdateItemQuantityUseCase updateQuantityUseCase,
+  })  : _cartRepository = cartRepository,
+        _checkoutRepository = checkoutRepository,
+        _addItemUseCase = addItemUseCase,
+        _updateQuantityUseCase = updateQuantityUseCase;
 
   Cart _cart = Cart.empty();
   bool _isLoading = false;
@@ -27,65 +34,47 @@ class CartStoreViewmodel extends ChangeNotifier {
   bool get isRemoving => _isRemoving;
   String? get errorMessage => _errorMessage;
 
-  set errorMessage(String? value) {
+  void setErrorMessage(String? value) {
     _errorMessage = value;
     notifyListeners();
   }
 
   void addItem(Product product) {
-    if (_cart.totalDifferentItems >= AppConstants.maxItems) {
-      _errorMessage =
-          'Limite de ${AppConstants.maxItems} produtos '
-          'diferentes atingido. Remova alguns produtos '
-          'para adicionar mais.';
-      notifyListeners();
-      return;
+    final result = _addItemUseCase.execute(_cart, product);
+    switch (result) {
+      case Ok():
+        _cart = result.value;
+        notifyListeners();
+      case Error():
+        if (result.error is CartException) {
+          _errorMessage = (result.error as CartException).message;
+        } else {
+          _errorMessage = result.error.toString();
+        }
+        notifyListeners();
     }
-
-    final existingIndex = _cart.items.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-
-    final List<CartItem> newItems;
-    if (existingIndex >= 0) {
-      newItems = List.from(_cart.items);
-      newItems[existingIndex] = newItems[existingIndex].copyWith(
-        quantity: newItems[existingIndex].quantity + 1,
-      );
-    } else {
-      newItems = [..._cart.items, CartItem(product: product, quantity: 1)];
-    }
-
-    _cart = _cart.copyWith(items: newItems);
-    notifyListeners();
   }
 
   void incrementItem(Product product) {
-    final existingIndex = _cart.items.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-    if (existingIndex >= 0) {
-      final newItems = List<CartItem>.from(_cart.items);
-      newItems[existingIndex] = newItems[existingIndex].copyWith(
-        quantity: newItems[existingIndex].quantity + 1,
-      );
-      _cart = _cart.copyWith(items: newItems);
+    final result = _updateQuantityUseCase.increment(_cart, product);
+    switch (result) {
+      case Ok():
+        _cart = result.value;
+        notifyListeners();
+      case Error():
+        break;
     }
-    notifyListeners();
   }
 
   void decrementItem(Product product) {
-    final existingIndex = _cart.items.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-    if (existingIndex >= 0) {
-      final newItems = List<CartItem>.from(_cart.items);
-      newItems[existingIndex] = newItems[existingIndex].copyWith(
-        quantity: newItems[existingIndex].quantity - 1,
-      );
-      _cart = _cart.copyWith(items: newItems);
+    final result = _updateQuantityUseCase.decrement(_cart, product);
+    switch (result) {
+      case Ok():
+        _cart = result.value;
+        notifyListeners();
+      case Error():
+        break;
     }
-    notifyListeners();
   }
 
   Future<void> removeItem(Product product) async {
@@ -101,9 +90,9 @@ class CartStoreViewmodel extends ChangeNotifier {
         break;
       case Error():
         if (result.error is CartException) {
-          errorMessage = (result.error as CartException).message;
+          setErrorMessage((result.error as CartException).message);
         } else {
-          errorMessage = result.error.toString();
+          setErrorMessage(result.error.toString());
         }
         break;
     }
@@ -146,7 +135,7 @@ class CartStoreViewmodel extends ChangeNotifier {
         setIsLoading(false);
         return result.value;
       case Error():
-        errorMessage = result.error.toString();
+        setErrorMessage(result.error.toString());
         setIsLoading(false);
         return false;
     }

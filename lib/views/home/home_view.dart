@@ -106,13 +106,24 @@ class _HomeViewState extends State<HomeView> {
             );
           }
 
-          return ListView.builder(
-            itemCount: model.products.length,
-            itemBuilder: (context, index) {
-              final product = model.products[index];
-              return SizedBox(
-                height: 182,
-                child: CardProduct(product: product),
+          return Consumer<CartStoreViewmodel>(
+            builder: (context, cartModel, _) {
+              return ListView.builder(
+                itemCount: model.products.length,
+                itemBuilder: (context, index) {
+                  final product = model.products[index];
+                  final quantity = cartModel.getItemQuantity(product);
+                  return SizedBox(
+                    height: 182,
+                    child: CardProduct(
+                      product: product,
+                      quantity: quantity,
+                      onAdd: () => cartModel.addItem(product),
+                      onIncrement: () => cartModel.incrementItem(product),
+                      onDecrement: () => cartModel.decrementItem(product),
+                    ),
+                  );
+                },
               );
             },
           );

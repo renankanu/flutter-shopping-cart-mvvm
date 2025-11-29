@@ -13,11 +13,11 @@ class HomeViewmodel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<Product> get products => _products;
+  List<Product> get products => List.unmodifiable(_products);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  set errorMessage(String? value) {
+  void setErrorMessage(String? value) {
     _errorMessage = value;
     notifyListeners();
   }
@@ -30,7 +30,7 @@ class HomeViewmodel extends ChangeNotifier {
         _products.addAll(result.value);
         break;
       case Error():
-        errorMessage = result.error.toString();
+        setErrorMessage(result.error.toString());
     }
     setIsLoading(false);
   }

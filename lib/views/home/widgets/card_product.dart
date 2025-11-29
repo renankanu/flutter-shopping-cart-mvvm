@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../../core/core.dart';
 import '../../../domain/models/product.dart';
 import '../../../shared/shared.dart';
-import '../../../viewmodels/cart/cart_store_viewmodel.dart';
 
 class CardProduct extends StatelessWidget {
   const CardProduct({
     super.key,
     required this.product,
+    required this.quantity,
+    this.onAdd,
+    this.onIncrement,
+    this.onDecrement,
     this.onRemove,
     this.showAddButton = true,
   });
 
   final Product product;
+  final int quantity;
+  final VoidCallback? onAdd;
+  final VoidCallback? onIncrement;
+  final VoidCallback? onDecrement;
   final VoidCallback? onRemove;
   final bool showAddButton;
 
@@ -63,24 +69,19 @@ class CardProduct extends StatelessWidget {
                     ],
                   ),
                   Text(product.price.toCurrencyBr),
-                  Consumer<CartStoreViewmodel>(
-                    builder: (context, model, child) {
-                      final quantity = model.getItemQuantity(product);
-                      if (quantity > 0) {
-                        return AppQuantityCounter(
-                          product: product,
-                          onRemove: onRemove,
-                        );
-                      }
-                      if (showAddButton) {
-                        return AppButton(
-                          onPressed: () => model.addItem(product),
-                          title: 'Adicionar ao carrinho',
-                        );
-                      }
-                      return SizedBox.shrink();
-                    },
-                  ),
+                  if (quantity > 0)
+                    AppQuantityCounter(
+                      quantity: quantity,
+                      onIncrement: onIncrement,
+                      onDecrement: onDecrement,
+                    )
+                  else if (showAddButton && onAdd != null)
+                    AppButton(
+                      onPressed: onAdd!,
+                      title: 'Adicionar ao carrinho',
+                    )
+                  else
+                    SizedBox.shrink(),
                 ],
               ),
             ),

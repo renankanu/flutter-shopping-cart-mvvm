@@ -56,10 +56,14 @@ class _CartViewState extends State<CartView> {
                     child: ListView.builder(
                       itemCount: items.length,
                       itemBuilder: (context, index) {
-                        final product = items[index].product;
+                        final item = items[index];
+                        final product = item.product;
                         return CardProduct(
                           product: product,
+                          quantity: item.quantity,
                           showAddButton: false,
+                          onIncrement: () => model.incrementItem(product),
+                          onDecrement: () => model.decrementItem(product),
                           onRemove: () async {
                             await model.removeItem(product);
                           },
