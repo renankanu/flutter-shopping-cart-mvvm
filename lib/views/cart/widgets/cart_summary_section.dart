@@ -30,15 +30,15 @@ class CartSummarySection extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _SummaryItem(
+              AppSummaryItem(
                 title: 'Subtotal',
                 value: model.cart.subtotal.toCurrencyBr,
               ),
-              _SummaryItem(
+              AppSummaryItem(
                 title: 'Frete',
                 value: model.cart.shipping.toCurrencyBr,
               ),
-              _SummaryItem(
+              AppSummaryItem(
                 title: 'Total',
                 value: model.cart.total.toCurrencyBr,
               ),
@@ -50,6 +50,7 @@ class CartSummarySection extends StatelessWidget {
                     Navigator.pushReplacementNamed(
                       context,
                       AppConstants.orderRoute,
+                      arguments: model.cart,
                     );
                   }
                 },
@@ -60,24 +61,6 @@ class CartSummarySection extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _SummaryItem extends StatelessWidget {
-  const _SummaryItem({required this.title, required this.value});
-
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title),
-        Text(value),
-      ],
     );
   }
 }

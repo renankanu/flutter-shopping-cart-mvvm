@@ -59,7 +59,7 @@ class _HomeViewState extends State<HomeView> {
                   itemBuilder: (context, index) {
                     final product = model.products[index];
                     return SizedBox(
-                      height: 178,
+                      height: 182,
                       child: CardProduct(product: product),
                     );
                   },
