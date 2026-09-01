@@ -1,58 +1,90 @@
 # Shopping Cart - Flutter MVVM
 
-Aplicação de carrinho de compras desenvolvida em Flutter seguindo a arquitetura MVVM.
+Aplicação de carrinho de compras em Flutter com **MVVM**, use cases e Result pattern. Sample de estudo/portfolio — não é um app de produção.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/renansantosbr)
 
-## 📋 Requisitos
+## Requisitos
 
-- Flutter 3.38.3
-- Dart 3.10.1
+- Dart SDK `^3.10.1` (ver `pubspec.yaml`)
+- Flutter 3.x no canal **stable**
 
-## 🚀 Como executar
+## Como executar
 
 ```bash
-# Instalar dependências
 flutter pub get
-
-# Executar o app
 flutter run
+```
 
-# Rodar testes
+## Como testar
+
+```bash
+flutter pub get
 flutter test
 ```
 
-## 🏗️ Arquitetura
+A suíte é unitária + widget. Não há cobertura percentual publicada — rode `flutter test` para ver o resultado atual.
 
-O projeto segue a arquitetura **MVVM (Model-View-ViewModel)** com separação clara de responsabilidades:
+CI pretendido (GitHub Actions, Flutter **stable**, em push e pull request):
 
-- **Model**: Entidades de domínio (`Product`, `Cart`, `CartItem`)
-- **View**: Widgets de UI que apenas renderizam (recebem dados via props e emitem callbacks)
-- **ViewModel**: Orquestra fluxo de dados e gerencia estado da UI
-- **Use Cases**: Contém toda a lógica de negócio isolada e testável
-- **Repository**: Abstração para acesso a dados (API, cache, etc)
-- **Data**: Implementações dos repositories e DTOs
+```yaml
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    name: flutter test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+```
 
-## 🛠️ Tecnologias
+O arquivo correspondente é `.github/workflows/test.yml`.
 
-- **Flutter** - Framework UI
-- **Provider** - Gerenciamento de estado com ChangeNotifier
-- **Dio** - Cliente HTTP
-- **Mockito** - Testes unitários
-- **FakeStore API** - API de produtos
+## Arquitetura
 
-## ✨ Funcionalidades
+MVVM com domínio extraído em use cases. Fluxo:
 
-- ✅ Listagem de produtos da API
-- ✅ Adicionar produtos ao carrinho
-- ✅ Incrementar/decrementar quantidade
-- ✅ Remover produtos do carrinho
-- ✅ Limite de 10 produtos diferentes
-- ✅ Cálculo de subtotal e total
-- ✅ Finalização de pedido
-- ✅ Estados de loading e erro
+```
+View (widgets)  -->  ViewModel (ChangeNotifier / Provider)
+                         |
+                    Use cases (regra de negócio)
+                         |
+                    Repository (porta)  -->  Data (Dio / FakeStore API)
+```
 
-## 📱 Screenshots
+- **Model**: entidades de domínio (`Product`, `Cart`, `CartItem`, `Rating`)
+- **View**: telas e widgets. Recebem dados por props/Provider e emitem callbacks. Não conhecem Dio.
+- **ViewModel**: orquestra o fluxo e o estado da UI (`HomeViewmodel`, `CartStoreViewmodel`)
+- **Use cases**: regra isolada e testável (`AddItemToCartUseCase`, `UpdateItemQuantityUseCase`)
+- **Repository**: abstração de dados. Implementações em `lib/data/`
+
+Não é Clean Architecture completa (não há packages por feature, nem camada de data sources). É MVVM + use cases + repositório, suficiente para este sample.
+
+## Tecnologias
+
+- Flutter + Provider (`ChangeNotifier`)
+- Dio (HTTP)
+- Mockito (testes)
+- [FakeStore API](https://fakestoreapi.com) (catálogo)
+
+## Funcionalidades
+
+- Listagem de produtos da API
+- Adicionar, incrementar, decrementar e remover itens
+- Limite de 10 **produtos diferentes** no carrinho (`AppConstants.maxItems`)
+- Subtotal, frete fixo (R$ 10,00) e total
+- Finalização de pedido (checkout simulado)
+- Loading e erro (SnackBar)
+
+## Screenshots
 
 <div align="center">
   <img src="prints/001.png" width="250" alt="Tela de produtos">
@@ -66,50 +98,55 @@ O projeto segue a arquitetura **MVVM (Model-View-ViewModel)** com separação cl
   <img src="prints/006.png" width="250" alt="Pedido concluído">
 </div>
 
-## 📂 Estrutura de Pastas
+## Estrutura
 
 ```
 lib/
-├── core/              # Configurações, constantes e utils
-├── data/              # Repositories e DTOs
+├── core/              # constantes, tema, Result, exceções, Dio
+├── data/              # repositories + DTOs
 ├── domain/
-│   ├── models/        # Entidades de domínio
-│   └── usecases/      # Casos de uso (lógica de negócio)
-├── viewmodels/        # Gerenciamento de estado
-├── views/             # Telas e widgets
-└── shared/            # Widgets reutilizáveis
+│   ├── models/
+│   └── usecases/
+├── viewmodels/
+├── views/
+└── shared/            # widgets reutilizáveis
+test/
+├── domain/usecases/
+├── viewmodels/
+└── views/
 ```
 
-## 📝 Padrões Aplicados
+## Padrões
 
-### Result Pattern
+### Result pattern
 
-Tratamento de erros type-safe usando sealed classes. Em vez de try/catch, as operações retornam `Result<T>` que pode ser `Ok` ou `Error`. Isso torna o fluxo de erro explícito e obriga a tratar todos os casos.
+Operações retornam `Result<T>` (`Ok` | `Error`) em vez de lançar exceção para o caller. O ViewModel faz `switch` e atualiza a UI.
 
-### Use Cases
+### Use cases
 
-A lógica de negócio fica isolada em casos de uso específicos, deixando os ViewModels apenas orquestrando o fluxo. Cada use case faz uma coisa só e é facilmente testável.
-
-- `AddItemToCartUseCase` - Valida limite e adiciona produtos
-- `UpdateItemQuantityUseCase` - Incrementa/decrementa quantidades
+- `AddItemToCartUseCase` — adiciona ou incrementa; recusa o 11º produto diferente
+- `UpdateItemQuantityUseCase` — incrementa/decrementa; remove o item quando a quantidade chega a zero
 
 ### Outros
 
-- **Repository Pattern** - Abstração da camada de dados
-- **Dependency Injection** - Provider para injeção de dependências
-- **Immutability** - Modelos imutáveis com copyWith
-- **SOLID** - Separação clara de responsabilidades
+- Repository pattern
+- DI via Provider
+- Modelos com `copyWith`
+- Estado da UI com `ChangeNotifier`
 
-## 🧪 Testes
+## O que os testes cobrem
 
-Os teste implementados foram:
+| Área | Arquivo | O que valida |
+|---|---|---|
+| HomeViewModel | `test/viewmodels/home/home_viewmodel_test.dart` | loading, sucesso, erro, lista imutável |
+| CartStoreViewmodel | `test/viewmodels/cart/cart_store_viewmodel_test.dart` | add/increment/decrement, limite, remove, checkout |
+| Use cases | `test/domain/usecases/*` | regras de carrinho sem Flutter |
+| HomeView | `test/views/home/home_view_test.dart` | widget: loading, vazio, sucesso, erro (SnackBar) |
 
-- Testes unitários para ViewModels **HomeViewmodel**
+Repositórios concretos e telas de carrinho/pedido **não** têm testes ainda.
 
-## 📝 Observações
+Mocks gerados com Mockito (`build_runner`). Depois de alterar `@GenerateMocks`:
 
-Foi implementado apenas o teste unitário do **HomeViewModel**, faltando:
-
-- Testes unitários dos outros ViewModels (CartStoreViewmodel)
-- Testes unitários dos Use Cases (AddItemToCartUseCase, UpdateItemQuantityUseCase)
-- Testes de widget com pump verificando renderização por estado (loading, erro, sucesso)
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
